@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.Utilities;
 using System;
 using System.Diagnostics;
 
-namespace ItalicComments
+namespace DefaultFontItalicComments
 {
     [Export(typeof(IWpfTextViewCreationListener))]
     [ContentType("code")]
@@ -104,7 +104,7 @@ namespace ItalicComments
                     }
                     else if (name.Contains("doc tag"))
                     {
-                        Fade(classification);   
+                        Fade(classification);
                     }
                 }
             }
@@ -118,16 +118,13 @@ namespace ItalicComments
         {
             var textFormat = formatMap.GetTextProperties(text);
             var properties = formatMap.GetTextProperties(classification);
-            var typeface = properties.Typeface;
 
             // If this is already italic, skip it
-            if (typeface.Style == FontStyles.Italic)
+            if (properties.Typeface.Style == FontStyles.Italic)
                 return;
 
-            // Add italic and (possibly) remove bold, and change to a font that has good looking
-            // italics (i.e. *not* Consolas)
-            var newTypeface = new Typeface(new FontFamily("Lucida Sans"), FontStyles.Italic, FontWeights.Normal, typeface.Stretch);
-            properties = properties.SetTypeface(newTypeface);
+            // Add italic and (possibly) remove bold, but keep default font.
+            properties = properties.SetItalic(true).SetBold(false);
 
             // Also, make the font size a little bit smaller than the normal text size
             properties = properties.SetFontRenderingEmSize(textFormat.FontRenderingEmSize - 1);
@@ -144,15 +141,16 @@ namespace ItalicComments
             var brush = properties.ForegroundBrush as SolidColorBrush;
            
             // If the opacity is already not 1.0, skip this
-            if (brush == null || brush.Opacity != 1.0)
+            if (brush == null || (int)brush.Opacity != 1)
                 return;
 
             // Make the font size a little bit smaller than the normal text size
             properties = properties.SetFontRenderingEmSize(textFormat.FontRenderingEmSize - 1);
 
             // Set the opacity to be a bit lighter
-            properties = properties.SetForegroundBrush(new SolidColorBrush(brush.Color) { Opacity = 0.7 });
+            properties = properties.SetForegroundBrush(new SolidColorBrush(brush.Color) { Opacity = 0.6 });
 
+            // And put it back in the format map
             formatMap.SetTextProperties(classification, properties);
         }
     }
